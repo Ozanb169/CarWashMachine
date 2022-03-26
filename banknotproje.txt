@@ -1,0 +1,427 @@
+// Read and write data to and rom an SD card using Arduino
+ 
+#include <SPI.h>        // Include SPI library (needed or the SD card)
+#include <SD.h>         // Include SD library
+#define button1 7
+#define button2 6
+#define button3 5
+#define button4 4
+#define button5 3
+#define button6 2
+#define led1 9
+#define led2 8
+
+      
+      String content[5][5];
+      static  int parasayilari[5]; 
+      static  int kalanHizmet[4]={1,1,1,1};
+      static  int tempHizmet[4];
+      static  int hizmetFiyat[4]={15,10,5,50};
+      int para=0;
+      int asama=0;
+      int resC=0;
+      int temppara=0;  
+    File myFile;
+    void get_parasayilari(){
+        //parasayiları
+        for(int i = 0; i<5;i++){
+          parasayilari[i]=content[0][i].toInt();  
+
+        }  
+    }
+    void get_kalan_hizmet(){   
+      //hizmet sayisi
+        for(int i = 1; i<5;i++){
+       kalanHizmet[i-1]=(content[i][2].toInt());  
+  
+        }  
+      
+      
+      }
+    void split_string(String line,int line_count){
+        String temp = "";
+        int data_count=0;
+        for(int i=0; i<line.length();i++) {
+          if(line[i]==' '||line[i]==','||line[i]=='\n'){
+            content[line_count][data_count]=temp;
+            temp = "";
+            data_count++;
+          }
+          else{
+            temp+=line[i];
+          }
+          if(i == line.length()-1){//son elemanı da diziye atıyor
+            content[line_count][data_count]=temp;
+          }
+          
+        }
+    }
+    void setup() {
+        Serial.begin(9600);
+          pinMode(led1,OUTPUT);
+          pinMode(led2,OUTPUT);    
+          pinMode(button1,INPUT);
+          pinMode(button2,INPUT);
+          pinMode(button3,INPUT);
+          pinMode(button4,INPUT);
+          pinMode(button5,INPUT);
+          pinMode(button6,INPUT);
+            
+   
+      // Open serial communications and wait or port to open:
+     
+      while (!Serial) {
+        ; // wait or serial port to connect. Needed or native USB port only
+      }
+     
+      Serial.print(F("Initializing SD card..."));
+     
+      if (!SD.begin()) {
+        Serial.println(F("initialization failed!"));
+        while (1);
+      }
+      Serial.println(F("initialization done."));
+     
+      // open the ile. note that only one ile can be open at a time,
+      // so you have to close this one beore opening another.
+      myFile = SD.open("test.txt", FILE_WRITE);
+     
+      // i the ile opened okay, write to it:
+      if (myFile) {
+        Serial.print(F("Writing to test.txt..."));
+       // myile.println(F("testing 1, 2, 3."));
+        // close the ile:
+        myFile.close();
+        Serial.println("done.");
+         
+      } else {
+        // i the ile didn't open, print an error:
+        Serial.println(F("error opening test.txt"));
+      }
+     
+      // re-open the ile or reading:
+      myFile = SD.open("test.txt");
+      if (myFile) {
+        Serial.println(F("test.txt:"));
+     
+        // read rom the ile until there's nothing else in it:
+       
+        String buffer;
+        int lineCounter = 0;
+        while (myFile.available()) {
+            //Serial.write(myFile.read());
+            buffer = myFile.readStringUntil('\n');
+            split_string(buffer,lineCounter);
+            lineCounter++;
+        }
+        // close the file:
+        
+        myFile.close();
+      } else {
+        // if the file didn't open, print an error:
+        Serial.println(F("error opening test.txt"));
+      }
+
+      
+      for(int i = 0; i<5;i++){
+        for(int j= 0; j<5;j++){
+            Serial.print(content[i][j]);
+             Serial.print(F(" "));
+          }
+          Serial.println(F(" "));
+      }
+      
+      get_parasayilari();
+      get_kalan_hizmet();
+      for(int j=0;j<4;j++){
+              tempHizmet[j]=kalanHizmet[j];
+            }
+      for(int i = 0; i<5;i++){
+       // Serial.print(F("-"));
+       // Serial.println(parasayilari[i]);
+        
+        
+      }
+      Serial.println();
+      for(int i = 0; i<4;i++){
+       // Serial.print(F(".."));
+       // Serial.print(kalanHizmet[i]);
+      }
+      Serial.println();
+      
+      Serial.println(F(""));
+      Serial.println(F("PARA YUKLEME"));
+      Serial.println(F("1- 5TL"));
+      Serial.println(F("2- 10TL"));
+      Serial.println(F("3- 20TL"));
+      Serial.println(F("4- 50TL"));
+      Serial.println(F("5- 100TL"));
+      Serial.println(F("6-BITIR"));
+      Serial.println(F(""));
+      delay(200);
+   
+   
+   
+    }
+     
+    void loop() {
+     
+      delay(200);
+      if(asama==0){
+     
+        if(digitalRead(button1)==HIGH){
+        Serial.println(F("\n1.Butona bastin 5tl eklendi\n"));
+        para=para+5;
+        Serial.print(para);
+        Serial.println(F("tl para attiniz\n"));
+        parasayilari[0]+=1;
+        Serial.println(F(""));
+        }
+        if(digitalRead(button2)==HIGH){
+        Serial.println(F("\n2.Butona bastin 10tl eklendi"));
+        para=para+10;
+        Serial.print(para);
+        Serial.println(F("tl para attiniz\n"));
+        parasayilari[1]+=1;
+        Serial.println(F(""));
+        }
+        if(digitalRead(button3)==HIGH){
+        Serial.println(F("\n3.Butona bastin 20tl eklendi"));
+        para=para+20;
+        Serial.print(para);
+        Serial.println(F("tl para attiniz\n"));
+        parasayilari[2]+=1;
+        Serial.println(F(""));
+        }
+        if(digitalRead(button4)==HIGH){
+        Serial.println(F("\n4.Butona bastin 50tl eklendi"));
+        para=para+50;
+        Serial.print(para);
+        Serial.println(F("tl para attiniz\n"));
+        parasayilari[3]+=1;
+        Serial.println(F(""));
+        }
+        if(digitalRead(button5)==HIGH){
+        Serial.println(F("\n5.Butona bastin 100tl eklendi"));
+        para=para+100;
+        Serial.print(para);
+        Serial.println(F("tl para attiniz\n"));
+        parasayilari[4]+=1;
+        Serial.println(F(""));
+        }
+        if(digitalRead(button6)==HIGH){
+        Serial.println("");
+        Serial.println(F("Para atma islemi tamamlandi"));
+           
+            res:
+            asama=1;      
+            temppara=para;
+        Serial.println("YIKAMA SECENEKLERI:");
+        Serial.println("1.KOPUKLEME 15TL");
+        Serial.println("2.YIKAMA 10TL");
+        Serial.println("3.KURULAMA 5TL");
+        Serial.println("4.CILALAMA 50TL");
+        Serial.println("5.BITIR");
+        Serial.println("6.RESET");
+        Serial.println("");
+        Serial.println("");
+        resC=0;    
+        }
+        }
+        
+        if(asama==1){
+        if(digitalRead(button1)==HIGH){
+          Serial.println("");
+        Serial.println("kopukleme secildi");
+        if((para-hizmetFiyat[0])<0||(kalanHizmet[0]-1)<0)
+        {
+        Serial.println("Yetersiz bakiye/hizmet miktari");  
+        }
+        else{
+          para=para-hizmetFiyat[0];
+          kalanHizmet[0]-=1;
+         Serial.print("Kalan bakiye :"); 
+         Serial.println(para);
+         Serial.print("Kalan hizmet sayisi :");
+         Serial.println(kalanHizmet[0]);
+         resC=2;
+          Serial.println("");
+            }
+        }
+
+        if(digitalRead(button2)==HIGH){
+        Serial.println("yikama secildi");
+        if((para-hizmetFiyat[1])<0||(kalanHizmet[1]-1)<0)
+        {
+        Serial.println("Yetersiz bakiye/hizmet miktari");  
+        }
+        else{
+          para=para-hizmetFiyat[1];
+          kalanHizmet[1]-=1;
+         Serial.print("Kalan bakiye :"); 
+         Serial.println(para);
+         Serial.print("Kalan hizmet sayisi :");
+         Serial.println( kalanHizmet[1]);
+         Serial.println("");
+          resC=2;
+            }
+        }
+        if(digitalRead(button3)==HIGH){
+        Serial.println("kurulama secildi");
+        if((para-hizmetFiyat[2])<0||(kalanHizmet[2]-1)<0)
+        {
+        Serial.println("Yetersiz bakiye/hizmet miktari");  
+        }
+        else{
+          para=para-hizmetFiyat[2];
+          kalanHizmet[2]-=1;
+         Serial.print("Kalan bakiye :"); 
+         Serial.println(para);
+         Serial.print("Kalan hizmet sayisi :");
+         Serial.println(kalanHizmet[2]);
+         resC=2;
+          Serial.println("");
+            }
+        }
+        if(digitalRead(button4)==HIGH){
+        Serial.println("cilalama secildi");
+        if((para-hizmetFiyat[3])<0||(kalanHizmet[3]-1)<0)
+        {
+        Serial.println("Yetersiz bakiye/hizmet miktari");  
+        }
+        else{
+          para=para-hizmetFiyat[3];
+          kalanHizmet[3]-=1;
+         Serial.print("Kalan bakiye :"); 
+         Serial.println(para);
+         Serial.print("Kalan hizmet sayisi :");
+         Serial.println(kalanHizmet[3]);
+         resC=2;
+          Serial.println("");
+            }
+        }
+        if(digitalRead(button5)==HIGH){
+         Serial.println("");
+         Serial.println("");
+         Serial.println(F("Bitir"));
+         Serial.print(F("Kalan bakiye :")); 
+         Serial.println(para);
+         Serial.println(F("para ustu veriliyor :")); 
+     if(para/100>0){
+      
+     if(parasayilari[4]-(para/100)<0){
+     Serial.print(F("kullanilan 100luk :"));
+     Serial.println(parasayilari[4]);
+     para=para-(parasayilari[4]*100);
+     parasayilari[4]=0;
+     }
+     else{
+     Serial.print("100luk sayisi =  ");
+     Serial.println(para/100);
+     parasayilari[4]-=(para/100);
+     para=para%100; }
+
+    }
+
+    if(para/50>0){
+
+     if(parasayilari[3]-(para/50)<0){
+     Serial.print(F("kullanilan 50luk :"));
+     Serial.println(parasayilari[3]);
+     para=para-(parasayilari[3]*50);
+     parasayilari[3]=0;
+     }
+     else{ 
+     Serial.print(F("50luk sayisi =  "));
+     Serial.println(para/50);
+     parasayilari[3]-=(para/50);
+     para=para%50;
+     }
+    }
+  
+    if(para/20>0){
+
+     if(parasayilari[2]-(para/20)<0){
+     Serial.print(F("kullanilan 20luk :"));
+     Serial.println(parasayilari[2]);
+     para=para-(parasayilari[2]*20);
+     parasayilari[2]=0;
+     }
+     else{  
+     Serial.print(F("20luk sayisi =  "));
+     Serial.println(para/20);
+     parasayilari[2]-=(para/20);
+     para=para%20;
+     }
+    }
+ 
+    if(para/10>0){
+
+     if(parasayilari[1]-(para/10)<0){
+     Serial.print(F("kullanilan 10luk :"));
+     Serial.println(parasayilari[1]);
+     para=para-(parasayilari[1]*10);
+     parasayilari[1]=0;
+     }
+     else{  
+     Serial.print(F("10luk sayisi =  "));
+     Serial.println(para/10);
+     parasayilari[1]-=(para/10);
+     para=para%10;
+     }
+    }
+ 
+    if(para/5>0){
+
+     if(parasayilari[0]-(para/5)<0){
+     Serial.print(F("kullanilan 5luk :"));
+     Serial.println(parasayilari[0]);
+     para=para-(parasayilari[0]*5);
+     parasayilari[0]=0;
+     }
+     else{  
+     Serial.print(F("5luk sayisi =  "));
+     Serial.println(para/5);
+     parasayilari[0]-=(para/5);
+     para=para%5;
+     }
+    }
+      Serial.println("KASADA KALAN BANKNOT SAYILARI : ");
+       for(int i=0;i<5;i++){
+      Serial.println(parasayilari[i]);
+
+    }
+
+         
+         Serial.print("Iyi gunler...:");
+            resC=2;    
+         Serial.println("");
+            
+        }
+         if(digitalRead(button6)==HIGH){
+          if(resC>1){
+         Serial.println("Resetleniyor..");
+         digitalWrite(9,HIGH);
+         delay(200);
+         Serial.println("");
+         Serial.println("");
+         Serial.println("");
+         Serial.println("");
+         digitalWrite(9,LOW);
+         int i=0;
+            for(i=0;i<4;i++){
+              kalanHizmet[i]=tempHizmet[i] ;
+            }
+            para=temppara;
+         goto res;    
+        }
+
+         }
+        
+        }
+
+
+
+
+      
+}
